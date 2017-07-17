@@ -46,6 +46,7 @@ public class DecimalPickerDialog extends DialogFragment {
     private static final String ARG_NATURAL = "ARG_NATURAL";
     private static final String ARG_THEME = "ARG_THEME";
     private static final String ARG_SAVED_VALUE = "ARG_SAVED_VALUE";
+    private static final String ARG_DECIMAL_CALLBACK = "ARG_DECIMAL_CALLBACK";
 
     private static final int NB_KEYS = 10;
     private static final int DEFAULT_REFERENCE = 0;
@@ -60,12 +61,15 @@ public class DecimalPickerDialog extends DialogFragment {
     private String decimalSeparator;
     private int theme = R.style.SimpleNumberPickerTheme;
 
-    private static DecimalPickerDialog newInstance(int reference, boolean relative, boolean natural, int theme) {
+    private DecimalPickerHandler callbackDecimal;
+
+    private static DecimalPickerDialog newInstance(int reference, boolean relative, boolean natural, int theme, DecimalPickerHandler callbackDecimal) {
         Bundle args = new Bundle();
         args.putInt(ARG_REFERENCE, reference);
         args.putBoolean(ARG_RELATIVE, relative);
         args.putBoolean(ARG_NATURAL, natural);
         args.putInt(ARG_THEME, theme);
+        args.putSerializable(ARG_DECIMAL_CALLBACK, callbackDecimal);
         DecimalPickerDialog fragment = new DecimalPickerDialog();
         fragment.setArguments(args);
         return fragment;
@@ -141,6 +145,11 @@ public class DecimalPickerDialog extends DialogFragment {
                         final DecimalPickerHandler handler = (DecimalPickerHandler) fragment;
                         handler.onDecimalNumberPicked(reference, number);
                     }
+
+                    if (callbackDecimal != null) {
+                        callbackDecimal.onDecimalNumberPicked(reference, number);
+                    }
+
                     dismiss();
                 })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dismiss())
@@ -223,6 +232,7 @@ public class DecimalPickerDialog extends DialogFragment {
         outState.putBoolean(ARG_NATURAL, natural);
         outState.putInt(ARG_THEME, theme);
         outState.putString(ARG_SAVED_VALUE, numberTextView.getText().toString());
+        outState.putSerializable(ARG_DECIMAL_CALLBACK, callbackDecimal);
     }
 
     private void onNumberChanged() {
@@ -251,6 +261,8 @@ public class DecimalPickerDialog extends DialogFragment {
             natural = args.getBoolean(ARG_NATURAL);
         if (args.containsKey(ARG_THEME))
             theme = args.getInt(ARG_THEME);
+        if (args.containsKey(ARG_DECIMAL_CALLBACK))
+            callbackDecimal = (DecimalPickerHandler) args.getSerializable(ARG_DECIMAL_CALLBACK);
     }
 
     public static class Builder {
@@ -258,6 +270,7 @@ public class DecimalPickerDialog extends DialogFragment {
         private int reference = DEFAULT_REFERENCE;
         private boolean relative = true;
         private boolean natural = false;
+        private DecimalPickerHandler customCallback;
         private int theme = R.style.SimpleNumberPickerTheme;
 
         public Builder setReference(int reference) {
@@ -280,8 +293,13 @@ public class DecimalPickerDialog extends DialogFragment {
             return this;
         }
 
+        public Builder setDecimalPickerCallback(DecimalPickerHandler customCallback) {
+            this.customCallback = customCallback;
+            return this;
+        }
+
         public DecimalPickerDialog create() {
-            return newInstance(reference, relative, natural, theme);
+            return newInstance(reference, relative, natural, theme, customCallback);
         }
     }
 }

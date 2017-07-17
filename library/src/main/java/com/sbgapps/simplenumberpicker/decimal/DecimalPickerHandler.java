@@ -16,7 +16,9 @@
 
 package com.sbgapps.simplenumberpicker.decimal;
 
-public interface DecimalPickerHandler {
+import java.io.Serializable;
+
+public interface DecimalPickerHandler extends Serializable {
 
     void onDecimalNumberPicked(int reference, float number);
 }
